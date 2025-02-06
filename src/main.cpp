@@ -1,54 +1,69 @@
-#include<raylib.h>  
-#include<iostream>
-struct ball
+#include <raylib.h>
+#include <iostream>
+class Ball
 {
-    int x=400,y=400,rad=50;
-    Color color=RED;
-};
-struct rectangle
-{
-    int x=400,y=0,width=250,height=20;
-    Color color=RED;
-};
+public:
+    float x = 400, y = 400, rad = 50, speedx = 5, speedy = 5;
+    Color color = RED;
 
+    void draw()
+    {
+        DrawCircleGradient(this->x, this->y, this->rad, WHITE, this->color);
+    }
+    void move(Sound &bounce)
+    {
+        this->x += speedx;
+        this->y += speedy;
+        if (this->x + this->rad >= GetScreenWidth() || this->x - this->rad <= 0)
+        {
+            this->speedx *= -1;
+            PlaySound(bounce);
+            this->color = {(unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255};
+        }
+        if (this->y + this->rad >= GetScreenHeight() || this->y - this->rad <= 0)
+        {
+            this->speedy *= -1;
+            PlaySound(bounce);
+            this->color = {(unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255};
+        }
+    }
+};
+class rectangle
+{
+public:
+    float x = 400, y = 0, width = 250, height = 100;
+    Color color = RED;
+    void draw()
+    {
+        DrawRectangle(std::min(this->x = GetMouseX(),GetScreenWidth()- this->width), this->y = GetScreenHeight() - this->height-20, this->width, this->height, this->color);
+    }
+};
 
 int main()
 {
-    int width = 1280, height = 720,x=5,y=5;
+    std::cout << "Hello, World!" << std::endl;
+    SetTargetFPS(70);
+    float width = 1280, height = 720;
     InitWindow(width, height, "Ponng Game");
     InitAudioDevice();
-    SetTargetFPS(70);
-    std::cout<<"Hello, World!"<<std::endl;
     Sound bounce = LoadSound("res/bounce.mp3");
-    ball a;
-    rectangle rup,rdown;
-    
+    Ball ball;
+    rectangle rdown;
+
     HideCursor();
     while (!WindowShouldClose())
     {
-        
-        a.x+=x;a.y+=y;
-        if (a.x+a.rad>=width || a.x-a.rad<=0)
-        {
-            x*=-1;
+        ball.move(bounce);
+        if(CheckCollisionCircleRec(Vector2{ball.x,ball.y},ball.rad,Rectangle{rdown.x,rdown.y,rdown.width,rdown.height})){
+            ball.speedy *= -1;
             PlaySound(bounce);
-            a.color = { (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
+            ball.color = {(unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255};
         }
-        if (a.y+a.rad>=height || a.y-a.rad<=0)
-        {
-            y*=-1;
-            PlaySound(bounce);
-            a.color={ (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), (unsigned char)GetRandomValue(0, 255), 255 };
-        }
-
-        DrawRectangle(GetMouseX(), height-rdown.height, rdown.width  , rdown.height, RED);
-        std::cout<<GetMouseX()<<std::endl;
-
         ClearBackground(BLACK);
         BeginDrawing();
-        DrawLineEx(Vector2{0, (float)height/2}, Vector2{1280, (float)height/2}, 5, DARKBROWN);
-        DrawText("Hello, World!", 10, 10, 20, DARKGRAY);
-        DrawCircleGradient(a.x, a.y, a.rad, a.color, GRAY);
+        DrawLineEx(Vector2{0, (float)height / 2}, Vector2{1280, (float)height / 2}, 5, DARKBROWN);
+        rdown.draw();
+        ball.draw();
         DrawFPS(500, 10);
         EndDrawing();
     }
