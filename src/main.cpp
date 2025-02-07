@@ -80,10 +80,9 @@ public:
                 DrawText("Press SPACE to Play Again", (GetScreenWidth() - textWidth) / 2, (GetScreenHeight() - 50) / 2, 50, Fade(WHITE, alpha));
                 DrawText(TextFormat("Your Score : %ld Highest Score : %ld", score, highscore), (GetScreenWidth() - MeasureText(TextFormat("Your Score : %ld Highest Score : %ld", score, highscore), 50)) / 2, (GetScreenHeight() + 50) / 2, 50, Fade(WHITE, alpha));
                 EndDrawing();
-                if (WindowShouldClose() || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
+                if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
                     return 1;
             }
-
             saveHighScore(std::max(score, highscore));
             highscore = std::max(highscore, score);
             this->x = GetScreenWidth() / 2;
@@ -110,7 +109,7 @@ public:
 int loadmenu()
 {
     float alpha = 0.0f;
-    while (!(IsKeyPressed(KEY_SPACE) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)))
+    while (!(IsKeyPressed(KEY_SPACE) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ESCAPE) || IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)))
     {
         ClearBackground(BLACK);
         BeginDrawing();
@@ -119,7 +118,7 @@ int loadmenu()
         DrawText("Press SPACE to Start", (GetScreenWidth() - MeasureText("Press SPACE to Start", 50)) / 2, (GetScreenHeight() - 50) / 2, 50, Fade(WHITE, alpha));
         DrawText("Press ESC to Exit", (GetScreenWidth() - MeasureText("Press ESC to Exit", 50)) / 2, (GetScreenHeight() + 50) / 2, 50, Fade(WHITE, alpha));
         EndDrawing();
-        if (WindowShouldClose() || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))return 1;
+        if (IsMouseButtonPressed(KEY_ESCAPE) || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))return 1;
     }
     return 0;
 }
@@ -130,10 +129,8 @@ int main()
     SetTargetFPS(GetMonitorRefreshRate(0));
     InitWindow(GetScreenWidth(), GetScreenHeight(), "Pong Game");
     ToggleFullscreen();
-    
     InitAudioDevice();
     
-
     float width = GetScreenWidth(), height = GetScreenHeight(), ColorAlpha = 0.0f;
     long long score = 0, highscore = 0;
     highscore = loadHighScore();
@@ -145,8 +142,16 @@ int main()
         return 1;
 
     HideCursor();
-    while (!IsKeyPressed(KEY_ESCAPE))
+    while (!WindowShouldClose())
     {
+        if(!IsWindowFocused())SetWindowState(FLAG_WINDOW_MINIMIZED);
+        else 
+        {
+            ClearWindowState(FLAG_WINDOW_MINIMIZED);
+            if(!IsWindowFullscreen())ToggleFullscreen();  
+        }
+        
+        
         if (ball.lost(player.y, lost, score, highscore))
             break;
         ball.move(bounce);
@@ -179,8 +184,6 @@ int main()
         if (!IsSoundPlaying(music))
             PlaySound(music);
     }
-    if (loadmenu())
-        return 1;
     UnloadSound(bounce);
     UnloadSound(lost);
     UnloadSound(music);
