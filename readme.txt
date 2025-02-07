@@ -1,5 +1,3 @@
-# Pong Game
-
 Welcome to the Pong Game! This game is developed using Raylib and C++.
 
 ## How to Download and Run
